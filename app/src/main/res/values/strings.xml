@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Encrypted Notes</string>
-    <string name="appTitle">SecretNotes</string>
+    <string name="appTitle">Secret Encryption</string>
     <string name="encrypt">Encrypt</string>
     <string name="decrypt">Decrypt</string>
 </resources>

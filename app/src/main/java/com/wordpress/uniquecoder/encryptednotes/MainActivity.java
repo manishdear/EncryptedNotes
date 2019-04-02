@@ -1,5 +1,8 @@
 package com.wordpress.uniquecoder.encryptednotes;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
@@ -7,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,9 +33,10 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class MainActivity extends AppCompatActivity {
 
-    EditText toenc, todec;
-    TextView enc, dec;
-    Button encrypt, decrypt;
+    EditText toenc, todec,enc;
+    TextView dec;
+    Button encrypt, decrypt,shareEnc,shareDec;
+    ImageButton cb,cb2;
 
 
     @Override
@@ -46,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 try {
                     String e = encrypt(toenc.getText().toString(), pwd);
-                    enc.setText(e);
+                    enc.setText(e.trim());
                     Toast.makeText(MainActivity.this, "Hello", Toast.LENGTH_SHORT).show();
                 }
                 catch (Exception e){
@@ -60,8 +65,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                String d=decrypt(todec.getText().toString(),pwd);
-                dec.setText(d);
+                    if(decrypt(todec.getText().toString(), pwd)=="")
+                        Toast.makeText(MainActivity.this, "Wrong text cannot be decrypted", Toast.LENGTH_SHORT).show();
+                    else {
+                        String d = decrypt(todec.getText().toString(), pwd);
+                        dec.setText(d);
+                        Toast.makeText(MainActivity.this, d, Toast.LENGTH_SHORT).show();
+                    }
                 }
                 catch (Exception e){
                     e.printStackTrace();
@@ -69,7 +79,52 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        cb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ClipboardManager myClipboard;
+                myClipboard = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+                ClipData myClip;
+                String text = enc.getText().toString();
+                myClip = ClipData.newPlainText("text", text);
+                myClipboard.setPrimaryClip(myClip);
+                Toast.makeText(MainActivity.this, "Copied to clipboard", Toast.LENGTH_SHORT).show();
+            }
+        });
+        cb2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ClipboardManager myClipboard;
+                myClipboard = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+                ClipData myClip;
+                String text = dec.getText().toString();
+                myClip = ClipData.newPlainText("text", text);
+                myClipboard.setPrimaryClip(myClip);
+                Toast.makeText(MainActivity.this, "Copied to clipboard", Toast.LENGTH_SHORT).show();
+            }
+        });
 
+        shareEnc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent myIntent=new Intent(Intent.ACTION_SEND);
+                myIntent.setType("text/plain");
+                String shareBody=enc.getText().toString().trim();
+                myIntent.putExtra(Intent.EXTRA_TEXT,shareBody);
+                startActivity(Intent.createChooser(myIntent,"Share message on"));
+            }
+        });
+
+        shareDec.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent myIntent=new Intent(Intent.ACTION_SEND);
+                myIntent.setType("text/plain");
+                String shareBody=dec.getText().toString().trim();
+                myIntent.putExtra(Intent.EXTRA_TEXT,shareBody);
+                startActivity(Intent.createChooser(myIntent,"Share message on"));
+            }
+        });
     }
 
     private String decrypt(String data, String pwd) throws Exception{
@@ -80,7 +135,6 @@ public class MainActivity extends AppCompatActivity {
         byte[] decVal=c.doFinal(decodedVal);
         String decryptedVal=new String(decVal);
         return decryptedVal;
-
     }
 
     public void setUI() {
@@ -90,7 +144,10 @@ public class MainActivity extends AppCompatActivity {
         decrypt = findViewById(R.id.decrypt);
         enc = findViewById(R.id.enc);
         dec = findViewById(R.id.dec);
-
+        cb=findViewById(R.id.cb);
+        cb2=findViewById(R.id.cb2);
+        shareEnc=findViewById(R.id.shareEnc);
+        shareDec=findViewById(R.id.shareDec);
     }
 
     public String encrypt(String data,String pwd) throws Exception{
